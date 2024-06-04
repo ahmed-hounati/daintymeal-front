@@ -1,37 +1,46 @@
+import Colors from '@/constants/Colors';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { AntDesign, Feather, Ionicons } from '@expo/vector-icons';
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+const Layout = () => {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
+    <Tabs screenOptions={{
+      tabBarActiveTintColor: Colors.primary,
+      tabBarLabelStyle: {
+        fontFamily: 'mon-sb',
+      }
+    }
+    }>
+      <Tabs.Screen name='index' options={{
+        tabBarLabel: 'Home',
+        tabBarIcon: ({ color, size }) => <AntDesign name="home" size={size} color={color} />
+      }} />
+
+      <Tabs.Screen name='trending' options={{
+        tabBarLabel: 'Trending',
+        tabBarIcon: ({ color, size }) => <Feather name="map-pin" size={size} color={color} />
+      }} />
+
+
+      <Tabs.Screen name='favorites' options={{
+        tabBarLabel: 'Favorites',
+        tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />
+      }} />
+
+      <Tabs.Screen name='explore' options={{
+        tabBarLabel: 'Explore',
+        tabBarIcon: ({ color, size }) => <Ionicons name="search" size={size} color={color} />
+      }} />
+
+
+      <Tabs.Screen name='profile' options={{
+        tabBarLabel: 'Profile',
+        tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />
+      }} />
+
     </Tabs>
   );
-}
+};
+
+export default Layout
