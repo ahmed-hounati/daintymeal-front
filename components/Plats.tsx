@@ -1,4 +1,4 @@
-import Colors from '@/constants/Colors';
+import Colors from '../constants/Colors';
 import { EvilIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ListRenderItem, ActivityIndicator, SafeAreaView, FlatList } from 'react-native';
@@ -19,6 +19,10 @@ type Plat = {
     badge?: string;
 };
 
+interface Props {
+    category: string; // New prop to hold the selected category
+}
+
 const PlatCard: React.FC<{ item: Plat }> = ({ item }) => (
     <View style={styles.card}>
         <FlatList
@@ -34,22 +38,16 @@ const PlatCard: React.FC<{ item: Plat }> = ({ item }) => (
                 <Text style={styles.categoryText}>{item.category[0].name}</Text>
             </View>
         )}
-        {item.badge && (
-            <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.badge}</Text>
-            </View>
-        )}
         <View style={styles.details}>
             <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.description}>{item.description}</Text>
+            {/* <Text style={styles.price}>{item.resto[0].en.name}, {item.resto[0].address[0].street}, {item.resto[0].address[0].city}</Text> */}
             <View style={styles.info}>
                 <Text style={styles.time}>{item.time}</Text>
                 <Text style={styles.price}>{item.plat_price} {item.currency}</Text>
             </View>
             <View style={styles.footer}>
-                <Text style={styles.offer}>{item.resto[0].en.name}</Text>
                 <View style={styles.rating}>
-                    <Text style={{ color: 'white' }}><EvilIcons name="star" size={24} color="black" />{item.rating.toFixed(1)}</Text>
+                    <Text style={{ color: 'white', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text>
                 </View>
             </View>
         </View>
@@ -57,14 +55,14 @@ const PlatCard: React.FC<{ item: Plat }> = ({ item }) => (
 );
 
 
-const Plats: React.FC = () => {
+const Plats: React.FC<Props> = ({ category }) => {
     const [data, setData] = useState<Plat[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchPlats();
-    }, []);
+    }, [category]); // Reload plats when category changes
 
     const fetchPlats = async () => {
         try {
@@ -73,7 +71,8 @@ const Plats: React.FC = () => {
                 throw new Error('Failed to fetch plats');
             }
             const data = await response.json();
-            setData(data);
+            const filteredPlats = category ? data.filter((plat: { category: any[]; }) => plat.category.some(cat => cat.name === category)) : data;
+            setData(filteredPlats);
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -108,30 +107,21 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         overflow: 'hidden',
         margin: 10,
-        width: 370, // Adjusted to make it full width
+        width: 370,
         height: 350,
         flex: 1,
     },
     image: {
-        width: 370, // Adjust width according to your preference
-        height: 200, // Adjust height according to your preference
+        width: 370,
+        height: 280,
         resizeMode: 'cover',
-    },
-    badge: {
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        backgroundColor: 'yellow',
-        paddingHorizontal: 5,
-        paddingVertical: 2,
-        borderRadius: 5,
     },
     badgeText: {
         fontSize: 10,
         color: '#000',
     },
     details: {
-        padding: 10,
+        padding: 8,
     },
     title: {
         fontSize: 22,

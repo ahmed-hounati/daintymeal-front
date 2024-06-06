@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image } from 'react-native';
-import { useRef, useState, useEffect } from 'react'; // Added useEffect
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList, ScrollView } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Link } from 'expo-router';
 
@@ -16,13 +15,12 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged }: Props) => {
-    const scrollRef = useRef<ScrollView>(null);
+    const scrollRef = useRef<FlatList<Category>>(null);
     const itemsRef = useRef<Array<TouchableOpacity | null>>([]);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [categories, setCategories] = useState<Category[]>([]); // State to hold categories
+    const [categories, setCategories] = useState<Category[]>([]);
 
     useEffect(() => {
-        // Fetch categories from Lambda function
         fetchCategories();
     }, []);
 
@@ -33,7 +31,6 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                 throw new Error('Failed to fetch categories');
             }
             const data = await response.json();
-
             setCategories(data);
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -41,17 +38,13 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
     };
 
     const selectCategory = (index: number) => {
-        const selected = itemsRef.current[index];
         setActiveIndex(index);
-        selected?.measure((x) => {
-            scrollRef.current?.scrollTo({ x: x - 16, y: 0, animated: true });
-        });
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onCategoryChanged(categories[index].name);
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', paddingTop: 36 }}>
+        <SafeAreaView style={{ backgroundColor: '#fff', paddingTop: 36 }}>
             <View style={styles.container}>
                 <SafeAreaView>
                     <View style={styles.actionRow}>
@@ -61,7 +54,7 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                                     <Ionicons name="search" size={24} />
                                     <View>
                                         <Text style={{ fontFamily: 'mon-sb' }}>Where to?</Text>
-                                        <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>Anywhere Â· Any week</Text>
+                                        <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>Anywhere · Any week</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -71,37 +64,24 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
-                <ScrollView
-                    horizontal
-                    ref={scrollRef}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                        alignItems: 'center',
-                        gap: 20,
-                        paddingHorizontal: 16,
-                    }}>
-                    {categories ? (
-                        categories.map((item, index) => (
-                            <TouchableOpacity
-                                ref={(el) => (itemsRef.current[index] = el)}
-                                key={index}
-                                style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}
-                                onPress={() => selectCategory(index)}>
-                                <Image
-                                    source={{ uri: item.image }}
-                                    style={{
-                                        width: 24,
-                                        height: 24,
-                                    }}
-                                />
-                                <Text style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
-                                    {item.name}
-                                </Text>
-                            </TouchableOpacity>
-                        ))
-                    ) : (
-                        <Text>Loading categories...</Text>
-                    )}
+                <ScrollView horizontal={true} style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
+                    {categories.map((item, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}
+                            onPress={() => selectCategory(index)}>
+                            <Image
+                                source={{ uri: item.image }}
+                                style={{
+                                    width: 24,
+                                    height: 24,
+                                }}
+                            />
+                            <Text style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
+                                {item.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -128,7 +108,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingBottom: 16,
     },
-
     searchBtn: {
         backgroundColor: '#fff',
         flexDirection: 'row',
@@ -145,7 +124,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         shadowOffset: {
             width: 1,
-            height: 1,
+            height: 1
         },
     },
     filterBtn: {
@@ -155,19 +134,20 @@ const styles = StyleSheet.create({
         borderRadius: 24,
     },
     categoryText: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'mon-sb',
         color: Colors.grey,
+        marginHorizontal: 10
     },
     categoryTextActive: {
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'mon-sb',
         color: '#000',
     },
     categoriesBtn: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         paddingBottom: 8,
     },
     categoriesBtnActive: {
@@ -181,107 +161,3 @@ const styles = StyleSheet.create({
 });
 
 export default ExploreHeader;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-// import React from 'react';
-// import { SafeAreaView, Text } from 'react-native';
-// import Header from '../../../layout/Header';
-// import CustomNavigation from './CustomNavigation';
-// import { useTheme } from '@react-navigation/native';
-
-
-// const Home = () => {
-//     return (
-//         <>
-//         </>
-//     )
-// }
-// const Market = () => {
-//     return (
-//         <>
-//         </>
-//     )
-// }
-// const Change = () => {
-//     return (
-//         <>
-//         </>
-//     )
-// }
-// const Wallet = () => {
-//     return (
-//         <>
-//         </>
-//     )
-// }
-// const Profile = () => {
-//     return (
-//         <>
-//         </>
-//     )
-// }
-
-// const Tab = createBottomTabNavigator();
-
-// const TabStyle3 = (props) => {
-
-//     const { colors } = useTheme();
-
-//     return (
-//         <SafeAreaView style={{ flex: 1, backgroundColor: colors.card }}>
-//             <Header title={'Footer Style 3'} bgWhite leftIcon={'back'} />
-//             <Tab.Navigator
-//                 tabBar={props => <CustomNavigation {...props} />}
-//                 screenOptions={{
-//                     headerShown: false,
-//                 }}
-//                 initialRouteName="Change"
-//             >
-//                 <Tab.Screen
-//                     name="Home"
-//                     component={Home}
-
-//                 />
-//                 <Tab.Screen
-//                     name="Markets"
-//                     component={Market}
-//                 />
-//                 <Tab.Screen
-//                     name="Change"
-//                     component={Change}
-//                 />
-//                 <Tab.Screen
-//                     name="Wallet"
-//                     component={Wallet}
-//                 />
-//                 <Tab.Screen
-//                     name="Profile"
-//                     component={Profile}
-//                 />
-//             </Tab.Navigator>
-//         </SafeAreaView>
-//     );
-// };
-
-
-
-// export default TabStyle3;
