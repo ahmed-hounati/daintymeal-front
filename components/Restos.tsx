@@ -1,8 +1,8 @@
-import Colors from '@/constants/Colors';
-import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, ListRenderItem, ActivityIndicator, SafeAreaView, TouchableOpacity } from 'react-native';
+import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
 export type Restaurant = {
     address: any[];
@@ -16,11 +16,11 @@ export type Restaurant = {
     rating: number;
 };
 
-const RestaurantCard: React.FC<{ item: Restaurant; handleRestaurantPress: (restaurant: Restaurant) => void }> = ({
+const RestaurantCard: React.FC<{ item: Restaurant; onPress: (restaurant: Restaurant) => void }> = ({
     item,
-    handleRestaurantPress,
+    onPress
 }) => (
-    <TouchableOpacity onPress={() => handleRestaurantPress(item)}>
+    <TouchableOpacity onPress={() => onPress(item)}>
         <View style={styles.card}>
             <Image source={{ uri: item.image[0] }} style={styles.image} />
             <View style={styles.favoriteIconContainer}>
@@ -29,22 +29,24 @@ const RestaurantCard: React.FC<{ item: Restaurant; handleRestaurantPress: (resta
             <View style={styles.details}>
                 <Text style={styles.title}>{item.name}</Text>
                 <Text style={styles.address}>{item.address[0].street}, {item.address[0].city}</Text>
-
                 <View style={styles.info}>
                     <Text style={styles.time}>{item.workingTime}</Text>
                 </View>
                 <View style={styles.footer}>
                     <Text style={styles.offer}>Special Offer</Text>
-                    <View style={styles.rating}><Text style={{ color: '#fff', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text></View>
+                    <View style={styles.rating}>
+                        <Text style={{ color: '#fff', fontSize: 16 }}>
+                            <EvilIcons name="star" size={18} color="white" />
+                            {item.rating.toFixed(1)}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </View>
     </TouchableOpacity>
 );
 
-const Restos: React.FC = () => {
-    const navigation = useNavigation(); // Use useNavigation hook inside the component
-
+const Restos: React.FC<{ onPress: (restaurant: Restaurant) => void }> = ({ onPress }) => {
     const [data, setData] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -67,11 +69,9 @@ const Restos: React.FC = () => {
         }
     };
 
-    const handleRestaurantPress = (restaurant: Restaurant) => {
-        // navigation.navigate('RestaurantDetails', { restaurant });
-    };
-
-    const renderItem: ListRenderItem<Restaurant> = ({ item }) => <RestaurantCard item={item} handleRestaurantPress={handleRestaurantPress} />;
+    const renderItem: ListRenderItem<Restaurant> = ({ item }) => (
+        <RestaurantCard item={item} onPress={onPress} />
+    );
 
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" />;
@@ -97,13 +97,13 @@ const Restos: React.FC = () => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.bg,
         borderRadius: 10,
         overflow: 'hidden',
         height: 280,
         margin: 10,
         width: 200,
-        flex: 1
+        flex: 1,
     },
     favoriteIconContainer: {
         position: 'absolute',
@@ -133,10 +133,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    description: {
-        fontSize: 12,
-        color: 'gray',
-    },
     info: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -144,10 +140,6 @@ const styles = StyleSheet.create({
     },
     time: {
         fontSize: 14,
-        color: 'gray',
-    },
-    price: {
-        fontSize: 12,
         color: 'gray',
     },
     footer: {

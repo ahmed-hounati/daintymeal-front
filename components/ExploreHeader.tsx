@@ -3,15 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Link } from 'expo-router';
 
 interface Category {
     name: string;
     image: string;
+    require: boolean
 }
 
 interface Props {
-    onCategoryChanged: (category: string) => void;
+    onCategoryChanged: (category: string | null) => void;
 }
 
 const ExploreHeader = ({ onCategoryChanged }: Props) => {
@@ -31,52 +31,45 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                 throw new Error('Failed to fetch categories');
             }
             const data = await response.json();
-            setCategories(data);
+            setCategories([{ name: 'All', require: true, image: '../assets/images/all.png' }, ...data]);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
     };
 
+
     const selectCategory = (index: number) => {
         setActiveIndex(index);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onCategoryChanged(categories[index].name);
+        onCategoryChanged(index === 0 ? null : categories[index].name);
     };
 
     return (
-        <SafeAreaView style={{ backgroundColor: '#fff', paddingTop: 36 }}>
+        <SafeAreaView style={{ backgroundColor: '#fff' }}>
             <View style={styles.container}>
-                <SafeAreaView>
-                    <View style={styles.actionRow}>
-                        <Link href={'/(modals)/booking'} asChild>
-                            <TouchableOpacity>
-                                <View style={styles.searchBtn}>
-                                    <Ionicons name="search" size={24} />
-                                    <View>
-                                        <Text style={{ fontFamily: 'mon-sb' }}>Where to?</Text>
-                                        <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>Anywhere · Any week</Text>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        </Link>
-                        <TouchableOpacity style={styles.filterBtn}>
-                            <Ionicons name="options-outline" size={24} />
-                        </TouchableOpacity>
-                    </View>
-                </SafeAreaView>
+                <View style={styles.actionRow}>
+                    <TouchableOpacity>
+                        <View style={styles.searchBtn}>
+                            <Ionicons name="search" size={24} color={Colors.primary} />
+                            <View>
+                                <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>Search for restaurants or dishes</Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </View>
                 <ScrollView horizontal={true} style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
                     {categories.map((item, index) => (
                         <TouchableOpacity
                             key={index}
                             style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}
                             onPress={() => selectCategory(index)}>
+
                             <Image
-                                source={{ uri: item.image }}
+                                source={item?.require ? require('../assets/images/all.png') : { uri: item.image }}
                                 style={{
                                     width: 24,
                                     height: 24,
-                                }}
-                            />
+                                }}></Image>
                             <Text style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
                                 {item.name}
                             </Text>
@@ -92,14 +85,6 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#fff',
         height: 130,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        shadowOffset: {
-            width: 1,
-            height: 10,
-        },
     },
     actionRow: {
         flexDirection: 'row',
@@ -114,18 +99,12 @@ const styles = StyleSheet.create({
         gap: 10,
         padding: 14,
         alignItems: 'center',
-        width: 280,
-        borderWidth: StyleSheet.hairlineWidth,
+        width: '100%',
         borderColor: '#c2c2c2',
-        borderRadius: 30,
+        borderRadius: 15,
         elevation: 2,
         shadowColor: '#000',
         shadowOpacity: 0.12,
-        shadowRadius: 8,
-        shadowOffset: {
-            width: 1,
-            height: 1
-        },
     },
     filterBtn: {
         padding: 10,

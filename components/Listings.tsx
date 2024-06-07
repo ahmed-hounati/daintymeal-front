@@ -15,6 +15,7 @@ interface Props {
 const Listings = ({ listings: items, refresh, category }: Props) => {
     const listRef = useRef<BottomSheetFlatListMethods>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [filteredItems, setFilteredItems] = useState(items);
 
     // Update the view to scroll the list back top
     useEffect(() => {
@@ -31,10 +32,14 @@ const Listings = ({ listings: items, refresh, category }: Props) => {
     useEffect(() => {
         setLoading(true);
 
+        // Filter the items based on the category
+        const filtered = category ? items.filter((item) => item.category === category) : items;
+        setFilteredItems(filtered);
+
         setTimeout(() => {
             setLoading(false);
         }, 200);
-    }, [category]);
+    }, [items, category]);
 
     // Render one listing row for the FlatList
     const renderRow: ListRenderItem<any> = ({ item }) => (
@@ -66,9 +71,9 @@ const Listings = ({ listings: items, refresh, category }: Props) => {
         <View style={defaultStyles.container}>
             <BottomSheetFlatList
                 renderItem={renderRow}
-                data={loading ? [] : items}
+                data={loading ? [] : filteredItems}
                 ref={listRef}
-                ListHeaderComponent={<Text style={styles.info}>{items.length} homes</Text>}
+                ListHeaderComponent={<Text style={styles.info}>{filteredItems.length} homes</Text>}
             />
         </View>
     );

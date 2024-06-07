@@ -103,7 +103,7 @@ const Plats: React.FC<Props> = ({ category }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.bg,
         borderRadius: 10,
         overflow: 'hidden',
         margin: 10,

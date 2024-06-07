@@ -31,6 +31,7 @@ const Layout = () => {
       <Tabs.Screen
         name="index"
         options={{
+          headerShown: false,
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="home" size={size} color={color} />
@@ -41,6 +42,7 @@ const Layout = () => {
       <Tabs.Screen
         name="trending"
         options={{
+          headerShown: false,
           tabBarLabel: 'Trending',
           tabBarIcon: ({ color, size }) => (
             <Feather name="map-pin" size={size} color={color} />
