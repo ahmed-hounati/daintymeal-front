@@ -1,73 +1,49 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { ScrollView, Image, StyleSheet, View } from 'react-native';
 
-interface PromoBannerProps {
-    backgroundColor: string;
-    imageSource: string;
-    title: string;
-    subtitle: string;
-    buttonText: string;
-    onPress: () => void;
-}
-
-const PromoBanner: React.FC<PromoBannerProps> = ({ backgroundColor, imageSource, title, subtitle, buttonText, onPress }) => {
+const PromoBanner: React.FC = () => {
     return (
-        <View style={[styles.container, { backgroundColor }]}>
-            <Image source={{ uri: imageSource }} style={styles.image} />
-            <View style={styles.textContainer}>
-                <Text style={styles.title}>{title}</Text>
-                <Text style={styles.subtitle}>{subtitle}</Text>
-                <TouchableOpacity onPress={onPress} style={styles.button}>
-                    <Text style={styles.buttonText}>{buttonText}</Text>
-                </TouchableOpacity>
-            </View>
+        <View style={styles.container}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled
+                contentContainerStyle={styles.scrollViewContainer}
+            >
+                <Image source={require('../assets/images/banner.png')} style={styles.image} />
+                <Image source={require('../assets/images/banner1.png')} style={styles.image} />
+                <Image source={require('../assets/images/banner2.png')} style={styles.image} />
+                {/* <Image source={require('../assets/images/sbanner1.png')} style={styles.image} />
+                <Image source={require('../assets/images/sbanner2.png')} style={styles.image} />
+                <Image source={require('../assets/images/sbanner3.png')} style={styles.image} />
+                <Image source={require('../assets/images/sbanner4.png')} style={styles.image} /> */}
+            </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flexDirection: 'row',
-        borderRadius: 10,
-        padding: 15,
         margin: 10,
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        borderRadius: 10,
+        overflow: 'hidden',
         elevation: 2,
-        shadowColor: '#000',
+        backgroundColor: 'white',
+        shadowColor: 'white',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 2 },
+        borderBlockColor: 'white',
+    },
+    scrollViewContainer: {
+        alignItems: 'center',
     },
     image: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-    },
-    textContainer: {
-        flex: 1,
-        marginLeft: 15,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#fff',
-        marginVertical: 5,
-    },
-    button: {
-        backgroundColor: '#ffcc00',
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        borderRadius: 5,
-        marginTop: 5,
-    },
-    buttonText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#000',
+        width: 350, 
+        height: 200,
+        margin: 10,
+        resizeMode: 'cover',
+        marginHorizontal: 5, 
+        borderRadius: 10
     },
 });
 

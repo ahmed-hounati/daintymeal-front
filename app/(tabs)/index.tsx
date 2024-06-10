@@ -8,6 +8,7 @@ import * as Location from 'expo-location';
 import { EvilIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
+import PromoBanner from '@/components/PromoBanner';
 
 const Page: React.FC = () => {
   const [locationServicesEnabled, setLocationServicesEnabled] = useState(false);
@@ -66,8 +67,17 @@ const Page: React.FC = () => {
 
   const handleRestaurantPress = (restaurant: Restaurant) => {
     router.push({
-      pathname: '/restoDetails',
-      params: {},
+      pathname: 'resto',
+      params: {
+        name: restaurant.en.name,
+        address: restaurant.address[0].city,
+        _id: restaurant._id,
+        image: restaurant.image[0],
+        workingTime: restaurant.workingTime,
+        rating: restaurant.rating,
+        street: restaurant.address[0].street,
+        resto_code: restaurant.resto_code
+      },
     });
   };
 
@@ -84,7 +94,8 @@ const Page: React.FC = () => {
         </View>
       </View>
       <ExploreHeader onCategoryChanged={setCategory} />
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        <PromoBanner />
         <Restos onPress={handleRestaurantPress} />
         <Plats category={category} />
       </ScrollView>
@@ -113,7 +124,10 @@ const styles = StyleSheet.create({
     marginRight: 6,
     marginTop: 4,
     gap: 4,
-  }
+  },
+  scrollViewContainer: {
+    paddingBottom: 20,
+  },
 });
 
 export default Page;
