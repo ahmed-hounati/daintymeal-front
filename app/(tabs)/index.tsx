@@ -59,7 +59,7 @@ const Page: React.FC = () => {
       });
 
       if (response.length > 0) {
-        let address = `${response[0].name}, ${response[0].city}`;
+        let address = `${response[0].city}`;
         setDisplayCurrentAddress(address);
       }
     }

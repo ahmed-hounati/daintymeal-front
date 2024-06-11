@@ -49,6 +49,7 @@ const PlatCard: React.FC<{ item: Plat }> = ({ item }) => (
                 <View style={styles.rating}>
                     <Text style={{ color: 'white', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text>
                 </View>
+                <Text style={styles.offer}>Special Offer</Text>
             </View>
         </View>
     </View>
@@ -107,9 +108,10 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         overflow: 'hidden',
         margin: 10,
-        width: 370,
+        width: '90%',
         height: 350,
         flex: 1,
+        alignSelf: 'center'
     },
     image: {
         width: 370,

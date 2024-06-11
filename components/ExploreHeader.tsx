@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image, ScrollView } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { SvgUri } from 'react-native-svg';
 
 interface Category {
     name: string;
     image: string;
-    require: boolean
+    require: boolean;
 }
 
 interface Props {
@@ -15,8 +16,6 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged }: Props) => {
-    const scrollRef = useRef<FlatList<Category>>(null);
-    const itemsRef = useRef<Array<TouchableOpacity | null>>([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [categories, setCategories] = useState<Category[]>([]);
 
@@ -31,12 +30,11 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                 throw new Error('Failed to fetch categories');
             }
             const data = await response.json();
-            setCategories([{ name: 'All', require: true, image: '../assets/images/all.png' }, ...data]);
+            setCategories([{ name: 'All', require: true, image: require('../assets/images/all.png') }, ...data]);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
     };
-
 
     const selectCategory = (index: number) => {
         setActiveIndex(index);
@@ -52,24 +50,37 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                         <View style={styles.searchBtn}>
                             <Ionicons name="search" size={24} color={Colors.primary} />
                             <View>
-                                <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>Search for restaurants or dishes</Text>
+                                <Text style={{ color: Colors.grey, fontFamily: 'mon' }}>
+                                    Search for restaurants or dishes
+                                </Text>
                             </View>
                         </View>
                     </TouchableOpacity>
                 </View>
-                <ScrollView horizontal={true} style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
+                <ScrollView
+                    horizontal={true}
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ alignItems: 'center', paddingHorizontal: 10 }}
+                    showsHorizontalScrollIndicator={false}
+                >
                     {categories.map((item, index) => (
                         <TouchableOpacity
                             key={index}
                             style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}
-                            onPress={() => selectCategory(index)}>
-
-                            <Image
-                                source={item?.require ? require('../assets/images/all.png') : { uri: item.image }}
-                                style={{
-                                    width: 24,
-                                    height: 24,
-                                }}></Image>
+                            onPress={() => selectCategory(index)}
+                        >
+                            {item.require ? (
+                                <Image
+                                    source={require('../assets/images/all.png')}
+                                    style={{ width: 24, height: 24 }}
+                                />
+                            ) : (
+                                <SvgUri
+                                    uri={item.image}
+                                    width={24}
+                                    height={24}
+                                />
+                            )}
                             <Text style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
                                 {item.name}
                             </Text>
@@ -89,6 +100,7 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        width: '100%',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 16,
@@ -113,13 +125,13 @@ const styles = StyleSheet.create({
         borderRadius: 24,
     },
     categoryText: {
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: 'mon-sb',
         color: Colors.grey,
-        marginHorizontal: 10
+        marginHorizontal: 10,
     },
     categoryTextActive: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'mon-sb',
         color: '#000',
     },
