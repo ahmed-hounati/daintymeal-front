@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.bg,
         borderRadius: 10,
         overflow: 'hidden',
-        height: 280,
+        height: 300,
         margin: 10,
         width: 200,
         flex: 1,

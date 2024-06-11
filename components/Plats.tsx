@@ -63,7 +63,7 @@ const Plats: React.FC<Props> = ({ category }) => {
 
     useEffect(() => {
         fetchPlats();
-    }, [category]); // Reload plats when category changes
+    }, [category]);
 
     const fetchPlats = async () => {
         try {
@@ -81,10 +81,6 @@ const Plats: React.FC<Props> = ({ category }) => {
     };
 
     const renderItem: ListRenderItem<Plat> = ({ item }) => <PlatCard item={item} />;
-
-    if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
-    }
 
     if (error) {
         return <Text>Error: {error}</Text>;
