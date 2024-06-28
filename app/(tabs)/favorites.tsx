@@ -1,11 +1,12 @@
+import { useTheme } from '@/ThemeContext';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { SafeAreaView, Text, View } from 'react-native';
 
 const HomeScreen = () => {
+    const { darkMode } = useTheme();
     return (
-        <View>
-            <Text>Favorites</Text>
-        </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: darkMode ? '#000' : '#fff' }}>
+        </SafeAreaView>
     );
 };
 

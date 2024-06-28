@@ -1,3 +1,4 @@
+import { useTheme } from '@/ThemeContext';
 import Colors from '../constants/Colors';
 import { EvilIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
@@ -20,70 +21,91 @@ type Plat = {
 };
 
 interface Props {
-    category: string; // New prop to hold the selected category
+    category: string;
 }
 
-const PlatCard: React.FC<{ item: Plat }> = ({ item }) => (
-    <View style={styles.card}>
-        <FlatList
-            data={item.image}
-            renderItem={({ item: img, index }) => (
-                <Image key={index} source={{ uri: img }} style={styles.image} />
-            )}
-            keyExtractor={(img, index) => index.toString()}
-            horizontal={true}
-        />
-        {item.category && item.category.length > 0 && (
-            <View style={styles.categoryContainer}>
-                <Text style={styles.categoryText}>{item.category[0].name}</Text>
-            </View>
-        )}
-        <View style={styles.details}>
-            <Text style={styles.title}>{item.name}</Text>
-            {/* <Text style={styles.price}>{item.resto[0].en.name}, {item.resto[0].address[0].street}, {item.resto[0].address[0].city}</Text> */}
-            <View style={styles.info}>
-                <Text style={styles.time}>{item.time}</Text>
-                <Text style={styles.price}>{item.plat_price} {item.currency}</Text>
-            </View>
-            <View style={styles.footer}>
-                <View style={styles.rating}>
-                    <Text style={{ color: 'white', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text>
+
+
+
+const PlatCard: React.FC<{ item: Plat }> = ({ item }) => {
+    const { darkMode } = useTheme();
+
+    return (
+        <View style={{
+            backgroundColor: darkMode ? '#1c1c1c' : Colors.bg, // Apply dark mode background color
+            borderRadius: 10,
+            overflow: 'hidden',
+            margin: 10,
+            width: '90%',
+            height: 350,
+            alignSelf: 'center'
+        }}>
+            <FlatList
+                data={item.image}
+                renderItem={({ item: img, index }) => (
+                    <Image key={index} source={{ uri: img }} style={styles.image} />
+                )}
+                keyExtractor={(img, index) => index.toString()}
+                horizontal={true}
+            />
+            {item.category && item.category.length > 0 && (
+                <View style={styles.categoryContainer}>
+                    <Text style={styles.categoryText}>{item.category[0].name}</Text>
                 </View>
-                <Text style={styles.offer}>Special Offer</Text>
+            )}
+            <View style={styles.details}>
+                <Text style={{
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                    color: darkMode ? '#fff' : '#000'
+                }}>{item.name}</Text>
+                <View style={styles.info}>
+                    <Text style={styles.time}>{item.time}</Text>
+                    <Text style={styles.price}>{item.plat_price} {item.currency}</Text>
+                </View>
+                <View style={styles.footer}>
+                    <View style={styles.rating}>
+                        <Text style={{ color: 'white', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text>
+                    </View>
+                    <Text style={styles.offer}>Special Offer</Text>
+                </View>
             </View>
         </View>
-    </View>
-);
+    );
+};
 
+interface Props {
+    category: string;
+    searchQuery?: string;
+}
 
-const Plats: React.FC<Props> = ({ category }) => {
+const Plats: React.FC<Props> = ({ category, searchQuery }) => {
     const [data, setData] = useState<Plat[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchPlats();
-    }, [category]);
+    }, [category, searchQuery]);
 
     const fetchPlats = async () => {
+        setLoading(true);
         try {
             const response = await fetch('https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/plats');
-            if (!response.ok) {
-                throw new Error('Failed to fetch plats');
-            }
             const data = await response.json();
-            const filteredPlats = category ? data.filter((plat: { category: any[]; }) => plat.category.some(cat => cat.name === category)) : data;
+            const filteredPlats = data.filter((plat: Plat) =>
+                (!category || plat.category.some(cat => cat.name === category)) &&
+                (!searchQuery || plat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
             setData(filteredPlats);
-            setLoading(false);
-        } catch (error) {
+        } finally {
             setLoading(false);
         }
     };
 
     const renderItem: ListRenderItem<Plat> = ({ item }) => <PlatCard item={item} />;
 
-    if (error) {
-        return <Text>Error: {error}</Text>;
+    if (loading) {
+        return <ActivityIndicator size="large" color={Colors.primary} />;
     }
 
     return (
@@ -99,16 +121,6 @@ const Plats: React.FC<Props> = ({ category }) => {
 };
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: Colors.bg,
-        borderRadius: 10,
-        overflow: 'hidden',
-        margin: 10,
-        width: '90%',
-        height: 350,
-        flex: 1,
-        alignSelf: 'center'
-    },
     image: {
         width: 370,
         height: 280,
@@ -121,10 +133,7 @@ const styles = StyleSheet.create({
     details: {
         padding: 8,
     },
-    title: {
-        fontSize: 22,
-        fontWeight: 'bold',
-    },
+
     description: {
         fontSize: 12,
         color: 'gray',

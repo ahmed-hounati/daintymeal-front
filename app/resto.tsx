@@ -1,19 +1,21 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EvilIcons, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/ThemeContext';
 
 export default function Resto() {
     const navigation = useNavigation();
     const params = useLocalSearchParams();
-    const [data, setData] = useState<Array<{
-        currency: any;
-        plat_price: any;
-        category: any; image: string[]; name: string; created_at: string; rating: number
-    }>>([]);
+    const { t, i18n } = useTranslation(); // Add i18n for language switching
+    const { darkMode } = useTheme();
 
+    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [restoName, setRestoName] = useState('');
+    const [restoAddress, setRestoAddress] = useState('');
 
     const fetchPlats = async () => {
         const resto_code = params.resto_code;
@@ -30,7 +32,7 @@ export default function Resto() {
             }
             const data = await response.json();
             setData(data);
-
+            fetchRestaurantDetails(resto_code); // Fetch restaurant details separately
         } catch (error) {
             console.error(error);
         } finally {
@@ -38,20 +40,39 @@ export default function Resto() {
         }
     };
 
+    const fetchRestaurantDetails = async (resto_code: string | string[]) => {
+        try {
+            const response = await fetch(`https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/restos/${resto_code}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch restaurant details');
+            }
+            const responseData = await response.json();
+            const translatedName = responseData[i18n.language]?.name || responseData.name;
+            const translatedAddress = responseData.address.find((addr: { translations: { [x: string]: any; }; }) => addr.translations[i18n.language])?.translations[i18n.language] || responseData.address[0];
+            setRestoName(translatedName);
+            setRestoAddress(`${translatedAddress.street}, ${translatedAddress.city}, ${translatedAddress.state}, ${translatedAddress.country}`);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
         fetchPlats();
-    }, []);
-
+    }, [params.lang]);
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" />;
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: darkMode ? '#000' : '#fff',
+            paddingTop: 40,
+        }}>
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <FontAwesome5 name="chevron-left" size={18} color="#ffffff" />
-                    <Text style={styles.backText}>Back</Text>
+                    <Text style={styles.backText}>{t('Back')}</Text>
                 </TouchableOpacity>
                 <View style={styles.headerFontAwesome5s}>
                     <TouchableOpacity style={styles.headerFontAwesome5}>
@@ -69,8 +90,8 @@ export default function Resto() {
                 </View>
             </View>
             <View style={styles.detailsContainer}>
-                <Text style={styles.restaurantName}>{params.name}</Text>
-                <Text style={styles.address}>{params.street}, {params.address}</Text>
+                <Text style={styles.restaurantName}>{restoName}</Text>
+                <Text style={styles.address}>{restoAddress}</Text>
                 <View style={styles.ratingContainer}>
                     <View style={styles.ratingStars}>
                         <FontAwesome5 name="star" size={16} color="#ffc107" />
@@ -82,15 +103,33 @@ export default function Resto() {
                 </View>
                 <View style={styles.detailsRow}>
                     <View style={styles.detailsCol}>
-                        <Text style={styles.detailsText}>Open time <Text style={styles.badge}>{params.workingTime}</Text></Text>
+                        <Text style={styles.detailsText}>{t('Open time')} <Text style={styles.badge}>{params.workingTime}</Text></Text>
                     </View>
                 </View>
             </View>
-            <Text style={styles.sectionTitle}>FEATURED ITEMS</Text>
+            <Text style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                marginTop: 16,
+                marginBottom: 12,
+                marginHorizontal: 24,
+                color: darkMode ? '#fff' : '#000'
+            }}>{t('FEATURED ITEMS')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.slider}>
-                {data && data.map((item, index) => (
+                {data.map((item, index) => (
                     <TouchableOpacity key={index}>
-                        <View style={styles.card}>
+                        <View style={{
+                            backgroundColor: darkMode ? '#1c1c1c' : '#fff',
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                            width: 200,
+                            marginRight: 16,
+                            elevation: 2,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.22,
+                            shadowRadius: 2.22,
+                        }}>
                             <Image source={{ uri: item.image[0] }} style={styles.cardImage} />
                             <View style={styles.favoriteIconContainer}>
                                 <Ionicons name="add-outline" size={24} color="white" />
@@ -99,13 +138,18 @@ export default function Resto() {
                                 <MaterialIcons name="favorite-outline" size={24} color="black" style={styles.favoriteIcon} />
                             </View>
                             <View style={styles.cardDetails}>
-                                <Text style={styles.cardTitle}>{item.name}</Text>
+                                <Text style={{
+                                    fontSize: 16,
+                                    fontWeight: 'bold',
+                                    marginBottom: 8,
+                                    color: darkMode ? '#fff' : '#000'
+                                }}>{item.name}</Text>
                                 <View style={styles.info}>
                                     <Text style={styles.time}>{item.category[0].name}</Text>
                                     <Text style={styles.time}>{item.plat_price}{item.currency}</Text>
                                 </View>
                                 <View style={styles.footer}>
-                                    <Text style={styles.offer}>Special Offer</Text>
+                                    <Text style={styles.offer}>{t('Special Offer')}</Text>
                                     <View style={styles.rating}>
                                         <Text style={{ color: '#fff', fontSize: 16 }}>
                                             <EvilIcons name="star" size={18} color="white" />
@@ -118,16 +162,11 @@ export default function Resto() {
                     </TouchableOpacity>
                 ))}
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        marginTop: 50,
-    },
     header: {
         backgroundColor: Colors.primary,
         paddingVertical: 16,
@@ -197,28 +236,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#F29E02',
         borderRadius: 18,
     },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333333',
-        marginTop: 16,
-        marginBottom: 12,
-        marginHorizontal: 24,
-    },
     slider: {
         paddingHorizontal: 24,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        overflow: 'hidden',
-        width: 200,
-        marginRight: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.22,
-        shadowRadius: 2.22,
     },
     cardImage: {
         width: '100%',
@@ -250,11 +269,6 @@ const styles = StyleSheet.create({
     cardDetails: {
         padding: 12,
     },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
     info: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -280,7 +294,6 @@ const styles = StyleSheet.create({
     rating: {
         backgroundColor: Colors.primary,
         color: '#fff',
-
         borderRadius: 5,
         paddingHorizontal: 5,
         paddingVertical: 2,

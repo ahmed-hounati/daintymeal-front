@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, ListRenderItem, ActivityIndicator, SafeAreaView, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, Image, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, I18nManager } from 'react-native';
 import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/services/i18n';
+import { useTheme } from '@/ThemeContext';
 
 export type Restaurant = {
+    name: any;
     _id: string;
     resto_code: string;
     ar: {
@@ -28,6 +30,8 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: (restaurant: Restaur
     onPress,
     selectedLanguage
 }) => {
+    const { t } = useTranslation();
+
     const getRestaurantName = () => {
         switch (selectedLanguage) {
             case 'ar':
@@ -64,24 +68,38 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: (restaurant: Restaur
     };
 
     const formatRating = () => {
-        return item.rating ? item.rating.toFixed(1) : 'N/A';
+        return item.rating ? item.rating.toFixed(1) : t('N/A');
     };
+
+    const { darkMode } = useTheme();
 
     return (
         <TouchableOpacity onPress={() => onPress(item)}>
-            <View style={styles.card}>
+            <View style={{
+                backgroundColor: darkMode ? '#1c1c1c' : Colors.bg,
+                borderRadius: 10,
+                overflow: 'hidden',
+                height: 300,
+                margin: 10,
+                width: 200,
+                flex: 1
+            }}>
                 <Image source={{ uri: item.image[0] }} style={styles.image} />
                 <View style={styles.favoriteIconContainer}>
                     <MaterialIcons name="favorite-outline" size={24} color="black" style={styles.favoriteIcon} />
                 </View>
                 <View style={styles.details}>
-                    <Text style={styles.title}>{getRestaurantName()}</Text>
+                    <Text style={{
+                        fontSize: 16,
+                        fontWeight: 'bold',
+                        color: darkMode ? '#fff' : '#000'
+                    }}>{getRestaurantName()}</Text>
                     <Text style={styles.address}>{getRestaurantAddress()}</Text>
                     <View style={styles.info}>
                         <Text style={styles.time}>{item.workingTime}</Text>
                     </View>
                     <View style={styles.footer}>
-                        <Text style={styles.offer}>Special Offer</Text>
+                        <Text style={styles.offer}>{t('Special Offer')}</Text>
                         <View style={styles.rating}>
                             <Text style={{ color: '#fff', fontSize: 16 }}>
                                 <EvilIcons name="star" size={18} color="white" />
@@ -95,28 +113,32 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: (restaurant: Restaur
     );
 };
 
-const Restos: React.FC<{ onPress: (restaurant: Restaurant) => void }> = ({ onPress }) => {
+interface Props {
+    onPress: (restaurant: Restaurant) => void;
+    searchQuery?: string;
+}
+
+const Restos: React.FC<Props> = ({ onPress, searchQuery }) => {
     const [data, setData] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedLanguage, setSelectedLanguage] = useState<'ar' | 'fr' | 'en'>('en');
+    const selectedLanguage = i18n.language as 'ar' | 'fr' | 'en';
+    const isRTL = I18nManager.isRTL;
 
     useEffect(() => {
         fetchRestaurants();
-    }, []);
+    }, [searchQuery]);
 
     const fetchRestaurants = async () => {
+        setLoading(true);
         try {
             const response = await fetch('https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/restos');
-            if (!response.ok) {
-                throw new Error('Failed to fetch restaurants');
-            }
             const data = await response.json();
-            setData(data);
+            const filteredRestos = data.filter((resto: Restaurant) =>
+                !searchQuery || resto.name.en.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setData(filteredRestos);
+        } finally {
             setLoading(false);
-        } catch (error) {
-            setLoading(false);
-            setError('Error fetching restaurants');
         }
     };
 
@@ -128,47 +150,25 @@ const Restos: React.FC<{ onPress: (restaurant: Restaurant) => void }> = ({ onPre
         />
     );
 
-    if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
-    }
-
-    if (error) {
-        return <Text>Error: {error}</Text>;
-    }
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <Picker
-                selectedValue={selectedLanguage}
-                onValueChange={(itemValue: string) => setSelectedLanguage(itemValue as 'ar' | 'fr' | 'en')}
-                style={styles.languagePicker}
-            >
-                <Picker.Item label="Arabic" value="ar" />
-                <Picker.Item label="French" value="fr" />
-                <Picker.Item label="English" value="en" />
-            </Picker>
             <FlatList
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={item => item._id}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 10 }}
+                contentContainerStyle={[
+                    styles.flatListContentContainer,
+                    isRTL && styles.flatListContentContainerRTL
+                ]}
             />
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: Colors.bg,
-        borderRadius: 10,
-        overflow: 'hidden',
-        height: 300,
-        margin: 10,
-        width: 200,
-        flex: 1,
-    },
     favoriteIconContainer: {
         position: 'absolute',
         top: 3,
@@ -192,10 +192,6 @@ const styles = StyleSheet.create({
     },
     details: {
         padding: 10,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
     },
     info: {
         flexDirection: 'row',
@@ -226,8 +222,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5,
         paddingVertical: 2,
     },
-    languagePicker: {
-        marginVertical: 10,
+    flatListContentContainer: {
+        paddingHorizontal: 10,
+    },
+    flatListContentContainerRTL: {
+        paddingHorizontal: 10,
     },
 });
 

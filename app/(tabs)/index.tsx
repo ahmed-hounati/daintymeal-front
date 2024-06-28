@@ -9,59 +9,79 @@ import { EvilIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import PromoBanner from '@/components/PromoBanner';
+import { useTheme } from '@/ThemeContext';
 
 const Page: React.FC = () => {
   const [locationServicesEnabled, setLocationServicesEnabled] = useState(false);
   const [displayCurrentAddress, setDisplayCurrentAddress] = useState('Fetching your location...');
   const [category, setCategory] = useState<string>('');
   const router = useRouter();
+  const { darkMode } = useTheme();
 
   useEffect(() => {
-    CheckIfLocationEnabled();
-    GetCurrentLocation();
+    const initializeLocation = async () => {
+      try {
+        await CheckIfLocationEnabled();
+        await GetCurrentLocation();
+      } catch (error) {
+        console.error('Error initializing location:', error);
+      }
+    };
+    initializeLocation();
   }, []);
 
   const CheckIfLocationEnabled = async () => {
-    let enabled = await Location.hasServicesEnabledAsync();
-    if (!enabled) {
-      Alert.alert(
-        'Location Services not enabled',
-        'Please enable your location services to continue',
-        [{ text: 'OK' }],
-        { cancelable: false }
-      );
-    } else {
-      setLocationServicesEnabled(true);
+    try {
+      let enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        Alert.alert(
+          'Location Services not enabled',
+          'Please enable your location services to continue',
+          [{ text: 'OK' }],
+          { cancelable: false }
+        );
+      } else {
+        setLocationServicesEnabled(true);
+      }
+    } catch (error) {
+      console.error('Error checking if location is enabled:', error);
+      throw error;
     }
   };
 
   const GetCurrentLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission not granted',
-        'Allow the app to use the location service',
-        [{ text: 'OK' }],
-        { cancelable: false }
-      );
-      return;
-    }
-
-    const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.High,
-    });
-    let { coords } = location;
-    if (coords) {
-      const { latitude, longitude } = coords;
-      let response = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
-
-      if (response.length > 0) {
-        let address = `${response[0].city}`;
-        setDisplayCurrentAddress(address);
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission not granted',
+          'Allow the app to use the location service',
+          [{ text: 'OK' }],
+          { cancelable: false }
+        );
+        return;
       }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      let { coords } = location;
+      if (coords) {
+        const { latitude, longitude } = coords;
+        let response = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
+
+        if (response.length > 0) {
+          let address = `${response[0].city}`;
+          setDisplayCurrentAddress(address);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting current location:', error);
+      Alert.alert('Error', 'Failed to fetch the current location. Please try again.');
+      throw error;
     }
   };
 
@@ -82,15 +102,15 @@ const Page: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeAreaView}>
-      <View style={styles.headerContainer}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: darkMode ? '#000' : '#fff' }}>
+      <View style={[styles.headerContainer, darkMode && styles.darkHeaderContainer]}>
         <View style={styles.locationContainer}>
           <EvilIcons name="location" size={30} color={Colors.primary} />
-          <Text>{displayCurrentAddress}</Text>
+          <Text style={[styles.addressText, darkMode && styles.darkText]}>{displayCurrentAddress}</Text>
         </View>
         <View style={styles.iconsContainer}>
-          <AntDesign name="filter" size={26} color="black" />
-          <Ionicons name="menu-outline" size={24} color="black" />
+          <AntDesign name="filter" size={26} color={darkMode ? '#fff' : 'black'} />
+          <Ionicons name="menu-outline" size={24} color={darkMode ? '#fff' : 'black'} />
         </View>
       </View>
       <ExploreHeader onCategoryChanged={setCategory} />
@@ -104,10 +124,6 @@ const Page: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeAreaView: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -115,9 +131,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
     backgroundColor: '#fff',
   },
+  darkHeaderContainer: {
+    backgroundColor: '#000',
+  },
   locationContainer: {
     flexDirection: 'row',
     padding: 6,
+  },
+  addressText: {
+    color: '#000',
   },
   iconsContainer: {
     flexDirection: 'row',
@@ -127,6 +149,9 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     paddingBottom: 20,
+  },
+  darkText: {
+    color: '#fff',
   },
 });
 
