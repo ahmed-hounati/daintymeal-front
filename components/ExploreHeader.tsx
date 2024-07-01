@@ -26,9 +26,10 @@ interface Category {
 
 interface Props {
     onCategoryChanged: (category: string | null) => void;
+    onSearch: (query: string) => void;
 }
 
-const ExploreHeader = ({ onCategoryChanged }: Props) => {
+const ExploreHeader = ({ onCategoryChanged, onSearch }: Props) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [categories, setCategories] = useState<Category[]>([]);
     const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
@@ -37,8 +38,12 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
     const [loaded, setLoaded] = useState(false);
     const [isRTL, setIsRTL] = useState(I18nManager.isRTL);
     const [searchQuery, setSearchQuery] = useState('');
-    const { restartApp } = useAppRestart();
     const { darkMode, toggleDarkMode } = useTheme();
+
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+        onSearch(query);
+    };
 
     useEffect(() => {
         SplashScreen.preventAutoHideAsync();
@@ -120,19 +125,6 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
         onCategoryChanged(index === 0 ? null : filteredCategories[index].name);
     };
 
-    const handleSearch = (query: string) => {
-        setSearchQuery(query);
-        if (query === '') {
-            setFilteredCategories(categories);
-        } else {
-            const lowercasedQuery = query.toLowerCase();
-            const filtered = categories.filter(category =>
-                getCategoryName(category).toLowerCase().includes(lowercasedQuery)
-            );
-            setFilteredCategories(filtered);
-        }
-    };
-
     return (
         <SafeAreaView style={{ backgroundColor: darkMode ? '#000' : '#fff', direction: isRTL ? 'rtl' : 'ltr' }}>
             <View style={{
@@ -147,16 +139,16 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                             backgroundColor: darkMode ? '#000' : '#fff',
                             padding: 14,
                             borderRadius: 15,
-                            elevation: darkMode ? 2 : 0,  // Apply elevation only in dark mode
-                            shadowColor: darkMode ? '#000' : 'transparent',  // Apply shadow color only in dark mode
-                            shadowOpacity: 0.12,
+                            elevation: darkMode ? 2 : 0, 
+                            shadowColor: darkMode ? '#000' : '#f2f2f2', 
+                            shadowOpacity: 5,
                             shadowRadius: 2,
                             shadowOffset: {
                                 width: 0,
                                 height: 1,
                             },
-                            borderWidth: darkMode ? 1 : 0,  // Apply border only in dark mode
-                            borderColor: darkMode ? '#555' : 'transparent',  // Border color in dark mode
+                            borderWidth: darkMode ? 1 : 1,  // Apply border only in dark mode
+                            borderColor: darkMode ? '#555' : '#555',  // Border color in dark mode
                             marginRight: 10,
                         }}
                         placeholder={t('Search for restaurants or dishes')}
@@ -164,9 +156,6 @@ const ExploreHeader = ({ onCategoryChanged }: Props) => {
                         value={searchQuery}
                         onChangeText={handleSearch}
                     />
-
-
-
                     <Ionicons name="search" size={24} color={Colors.primary} style={styles.searchIcon} />
                 </View>
                 <ScrollView

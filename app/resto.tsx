@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { EvilIcons, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { EvilIcons, FontAwesome5 } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/ThemeContext';
@@ -9,13 +9,15 @@ import { useTheme } from '@/ThemeContext';
 export default function Resto() {
     const navigation = useNavigation();
     const params = useLocalSearchParams();
-    const { t, i18n } = useTranslation(); // Add i18n for language switching
+    const { t, i18n } = useTranslation();
     const { darkMode } = useTheme();
 
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [restoName, setRestoName] = useState('');
     const [restoAddress, setRestoAddress] = useState('');
+    const [restoImage, setRestoImage] = useState('');
+    const [avatarImage, setAvatarImage] = useState('');
 
     const fetchPlats = async () => {
         const resto_code = params.resto_code;
@@ -40,17 +42,23 @@ export default function Resto() {
         }
     };
 
-    const fetchRestaurantDetails = async (resto_code: string | string[]) => {
+    const fetchRestaurantDetails = async (resto_code) => {
         try {
             const response = await fetch(`https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/restos/${resto_code}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch restaurant details');
             }
             const responseData = await response.json();
+            console.log(responseData);
+
             const translatedName = responseData[i18n.language]?.name || responseData.name;
             const translatedAddress = responseData.address.find((addr: { translations: { [x: string]: any; }; }) => addr.translations[i18n.language])?.translations[i18n.language] || responseData.address[0];
+            const restoImage = responseData.image[0];
+            const avatarImage = responseData.avatar || responseData.image[0]; // Assuming avatar image URL is provided
             setRestoName(translatedName);
             setRestoAddress(`${translatedAddress.street}, ${translatedAddress.city}, ${translatedAddress.state}, ${translatedAddress.country}`);
+            setRestoImage(restoImage);
+            setAvatarImage(avatarImage);
         } catch (error) {
             console.error(error);
         }
@@ -59,243 +67,211 @@ export default function Resto() {
     useEffect(() => {
         fetchPlats();
     }, [params.lang]);
+
     if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
+        return <ActivityIndicator style={{ marginTop: 100 }} size="large" color={Colors.primary} />;
     }
 
     return (
         <SafeAreaView style={{
             flex: 1,
             backgroundColor: darkMode ? '#000' : '#fff',
-            paddingTop: 40,
         }}>
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                    <FontAwesome5 name="chevron-left" size={18} color="#ffffff" />
-                    <Text style={styles.backText}>{t('Back')}</Text>
-                </TouchableOpacity>
-                <View style={styles.headerFontAwesome5s}>
-                    <TouchableOpacity style={styles.headerFontAwesome5}>
-                        <FontAwesome5 name="star" size={18} color="#ffffff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.headerFontAwesome5}>
-                        <FontAwesome5 name="map-pin" size={18} color="#ffffff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.headerFontAwesome5}>
-                        <FontAwesome5 name="phone" size={18} color="#ffffff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.toggleButton}>
-                        <FontAwesome5 name="list" size={24} color="#ffffff" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <View style={styles.detailsContainer}>
-                <Text style={styles.restaurantName}>{restoName}</Text>
-                <Text style={styles.address}>{restoAddress}</Text>
-                <View style={styles.ratingContainer}>
-                    <View style={styles.ratingStars}>
-                        <FontAwesome5 name="star" size={16} color="#ffc107" />
-                        <FontAwesome5 name="star" size={16} color="#ffc107" />
-                        <FontAwesome5 name="star" size={16} color="#ffc107" />
-                        <FontAwesome5 name="star" size={16} color="#ffc107" />
-                        <FontAwesome5 name="star" size={16} color="#c4c4c4" />
+            <ScrollView>
+                {restoImage ? (
+                    <Image source={{ uri: restoImage }} style={styles.headerImage} />
+                ) : null}
+                <View style={styles.headerContainer}>
+                    {avatarImage ? (
+                        <Image source={{ uri: avatarImage }} style={styles.avatarImage} />
+                    ) : null}
+                    <View style={styles.headerTextContainer}>
+                        <Text style={styles.restaurantName}>{restoName}</Text>
+                        <Text style={styles.address}>{restoAddress}</Text>
+                        <View style={styles.ratingContainer}>
+                            <EvilIcons name="star" size={24} color="#ffc107" />
+                            <Text style={styles.ratingText}>4.37</Text>
+                        </View>
+                        <View style={styles.deliveryInfo}>
+                            <Text style={styles.deliveryText}>{t('Delivery')}</Text>
+                            <Text style={styles.deliveryTime}>25 min</Text>
+                        </View>
                     </View>
                 </View>
-                <View style={styles.detailsRow}>
-                    <View style={styles.detailsCol}>
-                        <Text style={styles.detailsText}>{t('Open time')} <Text style={styles.badge}>{params.workingTime}</Text></Text>
+                <View style={styles.detailsContainer}>
+                    <Text style={styles.sectionTitle}>{t('Deals & savings')}</Text>
+                    <View style={styles.dealContainer}>
+                        <Text style={styles.dealText}>{t('Buy 1, get 1 free')}</Text>
+                        <Text style={styles.dealDescription}>{t('Select CROISSAN\'WICH®')}</Text>
                     </View>
-                </View>
-            </View>
-            <Text style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                marginTop: 16,
-                marginBottom: 12,
-                marginHorizontal: 24,
-                color: darkMode ? '#fff' : '#000'
-            }}>{t('FEATURED ITEMS')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.slider}>
-                {data.map((item, index) => (
-                    <TouchableOpacity key={index}>
-                        <View style={{
-                            backgroundColor: darkMode ? '#1c1c1c' : '#fff',
-                            borderRadius: 10,
-                            overflow: 'hidden',
-                            width: 200,
-                            marginRight: 16,
-                            elevation: 2,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.22,
-                            shadowRadius: 2.22,
-                        }}>
-                            <Image source={{ uri: item.image[0] }} style={styles.cardImage} />
-                            <View style={styles.favoriteIconContainer}>
-                                <Ionicons name="add-outline" size={24} color="white" />
-                            </View>
-                            <View style={styles.favIconContainer}>
-                                <MaterialIcons name="favorite-outline" size={24} color="black" style={styles.favoriteIcon} />
-                            </View>
-                            <View style={styles.cardDetails}>
-                                <Text style={{
-                                    fontSize: 16,
-                                    fontWeight: 'bold',
-                                    marginBottom: 8,
-                                    color: darkMode ? '#fff' : '#000'
-                                }}>{item.name}</Text>
-                                <View style={styles.info}>
-                                    <Text style={styles.time}>{item.category[0].name}</Text>
-                                    <Text style={styles.time}>{item.plat_price}{item.currency}</Text>
-                                </View>
-                                <View style={styles.footer}>
-                                    <Text style={styles.offer}>{t('Special Offer')}</Text>
-                                    <View style={styles.rating}>
-                                        <Text style={{ color: '#fff', fontSize: 16 }}>
+                    <Text style={styles.sectionTitle}>{t('Featured Items')}</Text>
+                    <View style={styles.itemsContainer}>
+                        {data.map((item, index) => (
+                            <TouchableOpacity key={index} style={styles.itemCard}>
+                                <Image source={{ uri: item.image[0] }} style={styles.itemImage} />
+                                <View style={styles.itemDetails}>
+                                    <Text style={styles.itemName}>{item.name}</Text>
+                                    <Text style={styles.itemPrice}>{item.plat_price}{item.currency}</Text>
+                                    <View style={styles.itemFooter}>
+                                        <Text style={styles.specialOffer}>{t('Special Offer')}</Text>
+                                        <View style={styles.itemRating}>
                                             <EvilIcons name="star" size={18} color="white" />
-                                            {item.rating.toFixed(1)}
-                                        </Text>
+                                            <Text style={styles.itemRatingText}>{item.rating.toFixed(1)}</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    headerImage: {
+        width: '100%',
+        height: 200,
     },
-    backButton: {
+    headerContainer: {
         flexDirection: 'row',
+        padding: 16,
+        backgroundColor: '#fff',
         alignItems: 'center',
     },
-    backText: {
-        color: '#ffffff',
-        fontSize: 16,
-        marginLeft: 8,
+    avatarImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        marginRight: 16,
     },
-    headerFontAwesome5s: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    headerFontAwesome5: {
-        marginLeft: 16,
-        position: 'relative',
-    },
-    toggleButton: {
-        marginLeft: 16,
-    },
-    detailsContainer: {
-        color: 'white',
-        paddingVertical: 24,
-        paddingHorizontal: 24,
-        backgroundColor: Colors.primary,
+    headerTextContainer: {
+        flex: 1,
     },
     restaurantName: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'white',
     },
     address: {
         fontSize: 14,
-        color: 'white',
-        marginTop: 4,
+        color: '#888',
+        marginVertical: 4,
     },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 12,
+        marginVertical: 8,
     },
-    ratingStars: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    ratingText: {
+        fontSize: 16,
+        marginLeft: 4,
     },
-    detailsRow: {
+    deliveryInfo: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 12,
-    },
-    detailsCol: {
-        flexDirection: 'row',
         alignItems: 'center',
+        marginVertical: 8,
     },
-    detailsText: {
+    deliveryText: {
         fontSize: 14,
-        color: 'white',
+        color: '#888',
     },
-    badge: {
-        backgroundColor: '#F29E02',
-        borderRadius: 18,
+    deliveryTime: {
+        fontSize: 14,
+        fontWeight: 'bold',
     },
-    slider: {
-        paddingHorizontal: 24,
+    detailsContainer: {
+        padding: 16,
+        backgroundColor: '#f8f8f8',
     },
-    cardImage: {
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginVertical: 8,
+    },
+    dealContainer: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 8,
+        marginVertical: 8,
+        elevation: 2,
+    },
+    dealText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    dealDescription: {
+        fontSize: 12,
+        color: '#888',
+        marginTop: 4,
+    },
+    itemsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    itemCard: {
+        width: '48%',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        marginBottom: 16,
+        elevation: 2,
+    },
+    itemImage: {
         width: '100%',
         height: 120,
-        resizeMode: 'cover',
+        borderTopLeftRadius: 8,
+        borderTopRightRadius: 8,
     },
-    favoriteIconContainer: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: Colors.primary,
-        borderRadius: 6
+    itemDetails: {
+        padding: 8,
     },
-    favIconContainer: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        borderRadius: 6
-    },
-    favoriteIcon: {
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        padding: 5,
-        borderRadius: 12,
-    },
-    cardDetails: {
-        padding: 12,
-    },
-    info: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-    },
-    time: {
+    itemName: {
         fontSize: 14,
-        color: 'gray',
+        fontWeight: 'bold',
     },
-    footer: {
+    itemPrice: {
+        fontSize: 14,
+        color: '#888',
+        marginVertical: 4,
+    },
+    itemFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    offer: {
+    specialOffer: {
         backgroundColor: 'green',
         color: '#fff',
-        paddingHorizontal: 5,
-        paddingVertical: 2,
-        borderRadius: 5,
+        padding: 4,
+        borderRadius: 4,
         fontSize: 12,
     },
-    rating: {
+    itemRating: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: Colors.primary,
+        borderRadius: 4,
+        margin: 4,
+        padding: 3
+    },
+    itemRatingText: {
+        fontSize: 14,
         color: '#fff',
-        borderRadius: 5,
-        paddingHorizontal: 5,
-        paddingVertical: 2,
+        backgroundColor: Colors.primary,
+        borderRadius: 3
+    },
+    headerButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+    },
+    rightHeaderButtons: {
+        flexDirection: 'row',
+    },
+    headerButton: {
+        marginHorizontal: 8,
     },
 });

@@ -16,13 +16,14 @@ const Page: React.FC = () => {
   const [displayCurrentAddress, setDisplayCurrentAddress] = useState('Fetching your location...');
   const [category, setCategory] = useState<string>('');
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const { darkMode } = useTheme();
 
   useEffect(() => {
     const initializeLocation = async () => {
       try {
-        await CheckIfLocationEnabled();
-        await GetCurrentLocation();
+        await checkIfLocationEnabled();
+        await getCurrentLocation();
       } catch (error) {
         console.error('Error initializing location:', error);
       }
@@ -30,7 +31,7 @@ const Page: React.FC = () => {
     initializeLocation();
   }, []);
 
-  const CheckIfLocationEnabled = async () => {
+  const checkIfLocationEnabled = async () => {
     try {
       let enabled = await Location.hasServicesEnabledAsync();
       if (!enabled) {
@@ -49,7 +50,7 @@ const Page: React.FC = () => {
     }
   };
 
-  const GetCurrentLocation = async () => {
+  const getCurrentLocation = async () => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -101,6 +102,15 @@ const Page: React.FC = () => {
     });
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // Implement your search logic here
+    // For example, filter data based on the search query
+    // You might want to trigger fetching new data based on the query
+    // Example: fetch new data from API based on searchQuery
+    // Here you can define how to handle search results or filtering
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: darkMode ? '#000' : '#fff' }}>
       <View style={[styles.headerContainer, darkMode && styles.darkHeaderContainer]}>
@@ -113,11 +123,11 @@ const Page: React.FC = () => {
           <Ionicons name="menu-outline" size={24} color={darkMode ? '#fff' : 'black'} />
         </View>
       </View>
-      <ExploreHeader onCategoryChanged={setCategory} />
+      <ExploreHeader onCategoryChanged={setCategory} onSearch={handleSearch} />
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         <PromoBanner />
-        <Restos onPress={handleRestaurantPress} />
-        <Plats category={category} />
+        <Restos onPress={handleRestaurantPress} searchQuery={searchQuery} />
+        <Plats category={category} searchQuery={searchQuery} />
       </ScrollView>
     </SafeAreaView>
   );
