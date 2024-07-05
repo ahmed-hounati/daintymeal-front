@@ -104,11 +104,6 @@ const Page: React.FC = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Implement your search logic here
-    // For example, filter data based on the search query
-    // You might want to trigger fetching new data based on the query
-    // Example: fetch new data from API based on searchQuery
-    // Here you can define how to handle search results or filtering
   };
 
   return (

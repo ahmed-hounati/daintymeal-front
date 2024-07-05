@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, I18nManager } from 'react-native';
-import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, EvilIcons, MaterialIcons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/services/i18n';
@@ -102,7 +102,7 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: (restaurant: Restaur
                         <Text style={styles.offer}>{t('Special Offer')}</Text>
                         <View style={styles.rating}>
                             <Text style={{ color: '#fff', fontSize: 16 }}>
-                                <EvilIcons name="star" size={18} color="white" />
+                                <Entypo name="star" size={18} color="gold" />
                                 {formatRating()}
                             </Text>
                         </View>

@@ -1,9 +1,75 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from './navigationTypes'; // Adjust the path as necessary
+
+type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'index'>;
 
 const Register = () => {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigation = useNavigation<RegisterScreenNavigationProp>();
+
+    const handleSignUp = async () => {
+        try {
+            console.log('Sending sign-up request with:', { username, email, password });
+
+            const response = await fetch('https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/auth/signup-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                }),
+            });
+
+            const signUpResponse = await response.json();
+            console.log('Sign-up response:', signUpResponse);
+
+            if (response.ok) {
+                // Directly login the user after successful signup
+                const loginResponse = await fetch('https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/auth/login-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                    }),
+                });
+
+                const loginResult = await loginResponse.json();
+                console.log('Login response:', loginResult);
+
+                if (loginResponse.ok) {
+                    // Store the tokens and user code in AsyncStorage
+                    await AsyncStorage.setItem('access_token', loginResult.access_token);
+                    await AsyncStorage.setItem('refresh_token', loginResult.refresh_token);
+                    await AsyncStorage.setItem('user_code', loginResult.user_code);
+
+                    Alert.alert('Sign Up and Login Successful', 'You have been logged in.');
+                    navigation.navigate('index');
+                } else {
+                    Alert.alert('Login Failed', loginResult.message || 'Please try again.');
+                }
+            } else {
+                Alert.alert('Sign Up Failed', signUpResponse.message || 'Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during sign up or login:', error);
+            Alert.alert('Error', 'An error occurred. Please try again.');
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Video
@@ -15,10 +81,27 @@ const Register = () => {
                 isMuted
             />
             <View style={styles.overlay}>
-                <Text style={styles.welcome}>Enter your info</Text>
-                <TextInput placeholder="Enter Mobile" style={styles.input} />
-                <TextInput placeholder="Enter Password" style={styles.input} secureTextEntry />
-                <TouchableOpacity style={styles.signUpButton}>
+                <Text style={styles.welcome}>Welcome To Daintymeal!</Text>
+                <TextInput
+                    placeholder="Enter Username"
+                    style={styles.input}
+                    value={username}
+                    onChangeText={setUsername}
+                />
+                <TextInput
+                    placeholder="Enter Email"
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                />
+                <TextInput
+                    placeholder="Enter Password"
+                    style={styles.input}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
                     <Text style={styles.signUpButtonText}>SIGN UP</Text>
                 </TouchableOpacity>
                 <Text style={styles.orText}>OR</Text>
@@ -40,8 +123,8 @@ const Register = () => {
                         <Text style={styles.socialButtonText}>Google</Text>
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity>
-                    <Text style={styles.signInText}>Already an account? Sign in</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('login')}>
+                    <Text style={styles.signInText}>Already have an account? Sign in</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -79,7 +162,6 @@ const styles = StyleSheet.create({
     welcome: {
         color: '#fff',
         fontWeight: 'bold',
-        padding: 20
     },
     signUpButtonText: {
         color: '#fff',

@@ -8,7 +8,6 @@ import { useTheme } from '@/ThemeContext';
 import { View } from 'react-native';
 
 const Layout = () => {
-
   const { t } = useTranslation();
   const { darkMode, toggleDarkMode } = useTheme();
   return (
@@ -45,7 +44,6 @@ const Layout = () => {
             ),
           }}
         />
-
         <Tabs.Screen
           name="trending"
           options={{
@@ -56,7 +54,6 @@ const Layout = () => {
             ),
           }}
         />
-
         <Tabs.Screen
           name="middle"
           options={{
@@ -74,7 +71,6 @@ const Layout = () => {
             },
           }}
         />
-
         <Tabs.Screen
           name="favorites"
           options={{
@@ -85,7 +81,6 @@ const Layout = () => {
             ),
           }}
         />
-
         <Tabs.Screen
           name="profile"
           options={{

@@ -1,6 +1,6 @@
 import { useTheme } from '@/ThemeContext';
 import Colors from '../constants/Colors';
-import { EvilIcons } from '@expo/vector-icons';
+import { Entypo, EvilIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ListRenderItem, ActivityIndicator, SafeAreaView, FlatList } from 'react-native';
 
@@ -32,7 +32,7 @@ const PlatCard: React.FC<{ item: Plat }> = ({ item }) => {
 
     return (
         <View style={{
-            backgroundColor: darkMode ? '#1c1c1c' : Colors.bg, // Apply dark mode background color
+            backgroundColor: darkMode ? '#1c1c1c' : Colors.bg,
             borderRadius: 10,
             overflow: 'hidden',
             margin: 10,
@@ -65,7 +65,7 @@ const PlatCard: React.FC<{ item: Plat }> = ({ item }) => {
                 </View>
                 <View style={styles.footer}>
                     <View style={styles.rating}>
-                        <Text style={{ color: 'white', fontSize: 16 }}><EvilIcons name="star" size={18} color="white" />{item.rating.toFixed(1)}</Text>
+                        <Text style={{ color: 'white', fontSize: 16 }}><Entypo name="star" size={18} color="gold" />{item.rating.toFixed(1)}</Text>
                     </View>
                     <Text style={styles.offer}>Special Offer</Text>
                 </View>

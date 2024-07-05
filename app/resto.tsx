@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { EvilIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/ThemeContext';
@@ -34,7 +34,7 @@ export default function Resto() {
             }
             const data = await response.json();
             setData(data);
-            fetchRestaurantDetails(resto_code); // Fetch restaurant details separately
+            fetchRestaurantDetails(resto_code);
         } catch (error) {
             console.error(error);
         } finally {
@@ -42,7 +42,7 @@ export default function Resto() {
         }
     };
 
-    const fetchRestaurantDetails = async (resto_code) => {
+    const fetchRestaurantDetails = async (resto_code: string | string[]) => {
         try {
             const response = await fetch(`https://x2r9rfvwwi.execute-api.eu-north-1.amazonaws.com/dev/restos/${resto_code}`);
             if (!response.ok) {
@@ -81,41 +81,91 @@ export default function Resto() {
                 {restoImage ? (
                     <Image source={{ uri: restoImage }} style={styles.headerImage} />
                 ) : null}
-                <View style={styles.headerContainer}>
+                <View style={{
+                    flexDirection: 'row',
+                    padding: 16,
+                    backgroundColor: darkMode ? '#1c1c1c' : '#fff',
+                    alignItems: 'center',
+                }}>
                     {avatarImage ? (
                         <Image source={{ uri: avatarImage }} style={styles.avatarImage} />
                     ) : null}
                     <View style={styles.headerTextContainer}>
-                        <Text style={styles.restaurantName}>{restoName}</Text>
+                        <Text style={{
+                            fontSize: 20,
+                            fontWeight: 'bold',
+                            color: darkMode ? '#fff' : '#000',
+                        }}>{restoName}</Text>
                         <Text style={styles.address}>{restoAddress}</Text>
                         <View style={styles.ratingContainer}>
-                            <EvilIcons name="star" size={24} color="#ffc107" />
-                            <Text style={styles.ratingText}>4.37</Text>
+                            <Entypo name="star" size={24} color="gold" />
+                            <Text style={{
+                                fontSize: 16,
+                                marginLeft: 4,
+                                color: darkMode ? '#fff' : '#000',
+                            }}>4.37</Text>
                         </View>
                         <View style={styles.deliveryInfo}>
                             <Text style={styles.deliveryText}>{t('Delivery')}</Text>
-                            <Text style={styles.deliveryTime}>25 min</Text>
+                            <Text style={{
+                                fontSize: 14,
+                                fontWeight: 'bold',
+                                color: darkMode ? '#fff' : '#000',
+                            }}>25 min</Text>
                         </View>
                     </View>
                 </View>
-                <View style={styles.detailsContainer}>
-                    <Text style={styles.sectionTitle}>{t('Deals & savings')}</Text>
-                    <View style={styles.dealContainer}>
-                        <Text style={styles.dealText}>{t('Buy 1, get 1 free')}</Text>
+                <View style={{
+                    padding: 16,
+                    backgroundColor: darkMode ? '#000' : '#f8f8f8',
+                }}>
+                    <Text style={{
+                        fontSize: 16,
+                        fontWeight: 'bold',
+                        marginVertical: 8,
+                        color: darkMode ? '#fff' : '#000',
+                    }}>{t('Deals & savings')}</Text>
+                    <View style={{
+                        backgroundColor: darkMode ? '#1c1c1c' : '#fff',
+                        padding: 16,
+                        borderRadius: 8,
+                        marginVertical: 8,
+                        elevation: 2,
+                    }}>
+                        <Text style={{
+                            fontSize: 14,
+                            fontWeight: 'bold',
+                            color: darkMode ? '#fff' : '#000',
+                        }}>{t('Buy 1, get 1 free')}</Text>
                         <Text style={styles.dealDescription}>{t('Select CROISSAN\'WICH®')}</Text>
                     </View>
-                    <Text style={styles.sectionTitle}>{t('Featured Items')}</Text>
+                    <Text style={{
+                        fontSize: 16,
+                        fontWeight: 'bold',
+                        marginVertical: 8,
+                        color: darkMode ? '#fff' : '#000',
+                    }}>{t('Featured Items')}</Text>
                     <View style={styles.itemsContainer}>
                         {data.map((item, index) => (
-                            <TouchableOpacity key={index} style={styles.itemCard}>
+                            <TouchableOpacity key={index} style={{
+                                width: '48%',
+                                backgroundColor: darkMode ? '#1c1c1c' : '#fff',
+                                borderRadius: 8,
+                                marginBottom: 16,
+                                elevation: 2,
+                            }}>
                                 <Image source={{ uri: item.image[0] }} style={styles.itemImage} />
                                 <View style={styles.itemDetails}>
-                                    <Text style={styles.itemName}>{item.name}</Text>
+                                    <Text style={{
+                                        fontSize: 14,
+                                        fontWeight: 'bold',
+                                        color: darkMode ? '#fff' : '#000',
+                                    }}>{item.name}</Text>
                                     <Text style={styles.itemPrice}>{item.plat_price}{item.currency}</Text>
                                     <View style={styles.itemFooter}>
                                         <Text style={styles.specialOffer}>{t('Special Offer')}</Text>
                                         <View style={styles.itemRating}>
-                                            <EvilIcons name="star" size={18} color="white" />
+                                            <Entypo name="star" size={18} color="gold" />
                                             <Text style={styles.itemRatingText}>{item.rating.toFixed(1)}</Text>
                                         </View>
                                     </View>
@@ -134,12 +184,6 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 200,
     },
-    headerContainer: {
-        flexDirection: 'row',
-        padding: 16,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-    },
     avatarImage: {
         width: 60,
         height: 60,
@@ -148,10 +192,6 @@ const styles = StyleSheet.create({
     },
     headerTextContainer: {
         flex: 1,
-    },
-    restaurantName: {
-        fontSize: 20,
-        fontWeight: 'bold',
     },
     address: {
         fontSize: 14,
@@ -163,10 +203,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 8,
     },
-    ratingText: {
-        fontSize: 16,
-        marginLeft: 4,
-    },
     deliveryInfo: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -176,30 +212,6 @@ const styles = StyleSheet.create({
     deliveryText: {
         fontSize: 14,
         color: '#888',
-    },
-    deliveryTime: {
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    detailsContainer: {
-        padding: 16,
-        backgroundColor: '#f8f8f8',
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginVertical: 8,
-    },
-    dealContainer: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 8,
-        marginVertical: 8,
-        elevation: 2,
-    },
-    dealText: {
-        fontSize: 14,
-        fontWeight: 'bold',
     },
     dealDescription: {
         fontSize: 12,
@@ -211,13 +223,6 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         justifyContent: 'space-between',
     },
-    itemCard: {
-        width: '48%',
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        marginBottom: 16,
-        elevation: 2,
-    },
     itemImage: {
         width: '100%',
         height: 120,
@@ -226,10 +231,6 @@ const styles = StyleSheet.create({
     },
     itemDetails: {
         padding: 8,
-    },
-    itemName: {
-        fontSize: 14,
-        fontWeight: 'bold',
     },
     itemPrice: {
         fontSize: 14,

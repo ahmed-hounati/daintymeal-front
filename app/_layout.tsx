@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import useAppRestart from '@/hooks/useAppRestart';
 import { ThemeProvider } from '@/ThemeContext';
+import AuthProvider from './AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -71,14 +72,17 @@ export default function RootLayout() {
   const direction = i18n.language === 'ar' || i18n.language === 'fa' ? 'rtl' : 'ltr';
 
   return (
-    <ThemeProvider>
-      <View key={key} style={{ flex: 1, flexDirection: direction === 'ltr' ? 'row' : 'row-reverse' }}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name='resto' options={{ headerShown: false }} />
-          <Stack.Screen name='register' options={{ headerShown: false }} />
-        </Stack>
-      </View>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <View key={key} style={{ flex: 1, flexDirection: direction === 'ltr' ? 'row' : 'row-reverse' }}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name='resto' options={{ headerShown: false }} />
+            <Stack.Screen name='register' options={{ headerShown: false }} />
+            <Stack.Screen name='login' options={{ headerShown: false }} />
+          </Stack>
+        </View>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
