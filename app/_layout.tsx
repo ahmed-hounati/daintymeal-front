@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const { i18n } = useTranslation();
   const [loaded, setLoaded] = useState(false);
-  const { key, restartApp } = useAppRestart();
+  const { key } = useAppRestart();
   const [fontsLoaded] = useFonts({
     'mon': require('../assets/fonts/Montserrat-Regular.ttf'),
     'mon-sb': require('../assets/fonts/Montserrat-SemiBold.ttf'),
